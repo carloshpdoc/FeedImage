@@ -1,6 +1,5 @@
 # FeedImage
 This is an app with a slide feed. You choose the category and the app presents you with the images.
-Stayed tuned for upcoming features highlighted in the Future Features section listed below.
 
 ### Built With
 * Xcode 10.1
@@ -15,7 +14,7 @@ Run app by selecting Build button or Command + R
 View and use app with iOS Simulator or iPhone
 
 ### License
-[This project is licensed under the MIT License]()
+This project is licensed under the MIT License
 
 ### Acknowledgments
 [Udacity iOS Developer Nanodegree](https://www.udacity.com/course/ios-developer-nanodegree--nd003)
