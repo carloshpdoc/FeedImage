@@ -19,8 +19,8 @@ class FeedImages: UIViewController {
     @IBOutlet var creditLabel: UILabel!
     @IBOutlet var imageViews: [UIImageView]!
     
-    var category:String = ""
-    var images:[Image] = []
+    var category: String = ""
+    var images: [Image] = []
     var imageCounter = 0
     
     
@@ -48,39 +48,24 @@ class FeedImages: UIViewController {
                 return
             }
             
-            unsplash!.results.forEach() { result in
-                let image = Image(context: self.dataController.viewContext)
-                image.url = URL(string: result.urls.small)?.absoluteString
-                image.caption = result.user.name
-                image.creationDate =  Date()
-                image.category = self.category
-                
-                do {
-                    // Saves to CoreData
-                    try self.dataController.viewContext.save()
-                } catch  {
-                    print(error.localizedDescription)
+            unsplash!.results.forEach() { [weak self] result in
+                if let context = self?.dataController.viewContext {
+                    let image = Image(context: context)
+                    image.url = URL(string: result.urls.small)?.absoluteString
+                    image.caption = result.user.name
+                    image.creationDate =  Date()
+                    image.category = self?.category
+                    
+                    do {
+                        // Saves to CoreData
+                        try self?.dataController.viewContext.save()
+                    } catch  {
+                        print(error.localizedDescription)
+                    }
                 }
             }
             self.downloadImage()
         }
-    }
-    
-    func downloadImage(imagePath:String, completionHandler: @escaping (_ imageData: Data?, _ errorString: String?) -> Void) {
-        
-        // Create session and request
-        let imgURL = NSURL(string: imagePath)
-        let request: NSURLRequest = NSURLRequest(url: imgURL! as URL)
-        
-        // Create network request
-        let task = URLSession.shared.dataTask(with: request as URLRequest) { data, response, downloadError in
-            if downloadError != nil {
-                completionHandler(nil, "Could not download image \(imagePath)")
-            } else {
-                completionHandler(data, nil)
-            }
-        }
-        task.resume()
     }
     
     func downloadImage() {
