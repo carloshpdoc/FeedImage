@@ -25,9 +25,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         dataController.load()
         
-//        let navigationController = window?.rootViewController as! UINavigationController
-//        let ChooseCategories = navigationController.topViewController as! ChooseCategories
-        
+        let navigationController = window?.rootViewController as! UINavigationController
+        let ChooseCategories = navigationController.topViewController as! ChooseCategories
+        ChooseCategories.dataController = dataController
+
         return true
     }
 
@@ -90,7 +91,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }()
 
     // MARK: - Core Data Saving support
-
     func saveContext () {
         let context = persistentContainer.viewContext
         if context.hasChanges {

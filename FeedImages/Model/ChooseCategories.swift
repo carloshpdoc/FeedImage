@@ -9,9 +9,10 @@
 import UIKit
 
 class ChooseCategories: UIViewController, UITableViewDataSource, UITableViewDelegate {
-    
+    var dataController: DataController!
+
     var categories = ["Airplanes", "Beaches", "Bridges", "Cats", "Cities", "Dogs", "Earth", "Forests", "Galaxies", "Landmarks", "Mountains", "People", "Roads", "Sports", "Sunsets"]
-    
+
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
         return categories.count
@@ -28,11 +29,11 @@ class ChooseCategories: UIViewController, UITableViewDataSource, UITableViewDele
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
-        guard let vc = storyboard?.instantiateViewController(withIdentifier: "Images") as? ImagesVC else { return }
+        guard let vc = storyboard?.instantiateViewController(withIdentifier: "FeedImages") as? FeedImages else { return }
         
         vc.category = categories[indexPath.row]
-        
-        present(vc, animated: true)
+        vc.dataController = dataController
+        navigationController?.show(vc, sender: nil)
     }
     
 }

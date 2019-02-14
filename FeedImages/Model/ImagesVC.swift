@@ -7,132 +7,72 @@
 //
 
 import Foundation
-import UIKit
 import CoreData
 
-class ImagesVC: UIViewController {
+class ImagesVC {
     
-    @IBOutlet var spinner: UIActivityIndicatorView!
-    @IBOutlet var creditLabel: UILabel!
+    var arrayName:[String] = []
+    var arrayImage:[String] = []
     
-    var dataController: DataController!
-    var fetchedResultsController: NSFetchedResultsController<Image>!
-    var category = ""
-    var appID = "6d7482cd6d2d509c1e0bbe367bc8e23ed7f17ddcbe8ae0895adce17e87149929"
-    var images = [JSON]()
-    var imageViews = [UIImageView]()
-    var imageCounter = 0
+    // MARK: Initializers
+    init() {}
     
-    override func viewDidLoad() {
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        dataController = appDelegate.dataController
+    func getUnsplash (_ category: String, completionHandler: @escaping (_ success: Bool, _ unsplash: UnsplashResponseKeys?, _ error: String?)-> Void) -> Void {
         
-        imageViews = view.subviews.compactMap { $0 as? UIImageView }
-        imageViews.forEach { $0.alpha = 0 }
-        creditLabel.layer.cornerRadius = 15
-
-        loadUnsplash()
-    }
-    
-    func loadUnsplash () {
-        guard let url = URL(string: "https://api.unsplash.com/search/photos?client_id=\(appID)&query=\(category)&per_page=1") else { return }
+        let parameters: [String: String] = [
+            Constants.UnsplashParameterKeys.Client: Constants.Unsplash.APIKey, Constants.UnsplashParameterKeys.Query: category,
+            Constants.UnsplashParameterKeys.Per_page: Constants.UnsplashParameterKeys.page,
+            ]
         
-        DispatchQueue.global(qos: .userInteractive).async {
-            
-            self.fetch(url)
-        }
-    }
-
-    
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-    
-    
-    func fetch(_ url: URL) {
+        let url = createURLRequest(parameters: parameters)
         
-        if let data = try? Data(contentsOf: url) {
+        // Create session and request
+        URLSession.shared.dataTask(with: url) { (data, response
+            , error) in
             
-            let json = JSON(data)
-            images = json["results"].arrayValue
-            
-            downloadImage()
-        } else {
-            showAlert( "Dismiss", message: "Not resolver data")
-        }
-    }
-    
-    func downloadImage() {
-
-        //figure out what image to display
-        let currentImage = images[imageCounter % images.count]
-        
-        //find its image URL and user credit
-        let imageName = currentImage["urls"]["full"].stringValue
-        let imageCredit = currentImage["user"]["name"].stringValue
-        
-        //add 1 to imageCounter so next time we load the following image
-        imageCounter += 1
-        
-        //convert it to a Swift URL and download it
-        guard let imageURL = URL(string: imageName) else { return }
-        guard let imageData = try? Data(contentsOf: imageURL) else { return }
-        
-        //convert the Data to a UIImage
-        guard let image = UIImage(data: imageData) else { return }
-        
-        //push our work to the mail thread
-        DispatchQueue.main.async {
-            
-            self.show(image, credit: imageCredit)
-        }
-    }
-    
-    func show(_ image: UIImage, credit: String) {
-        
-        //stop the activity indicator animation
-        spinner.stopAnimating()
-        
-        //figure out which image view to activate and deactivate
-        let imageViewToUse = imageViews[imageCounter % imageViews.count]
-        let otherImageView = imageViews[(imageCounter + 1) % imageViews.count]
-        
-        //start an animation over two seconds
-        UIView.animate(withDuration: 2.0, animations: {
-            
-            //make the image view use our image, and alpha it up to 1
-            imageViewToUse.image = image
-            imageViewToUse.alpha = 1
-            
-            //fade out the credit label to avoid it looking wrong
-            self.creditLabel.alpha = 0
-            
-            //move the deactivated image to the back, behind the activated one
-            self.view.sendSubviewToBack(otherImageView)
-            
-        }) { _ in
-            
-            //crossfade finished
-            self.creditLabel.text = "  \(credit.uppercased())"
-            self.creditLabel.alpha = 1
-            otherImageView.alpha = 0
-            
-            otherImageView.transform = .identity
-            
-            UIView.animate(withDuration: 10.0, animations: {
-                
-                imageViewToUse.transform = CGAffineTransform(scaleX: 1.1, y: 1.1)
-            }) {
-                _ in
-                
-                DispatchQueue.global(qos: .userInteractive).async {
-                    
-                    self.downloadImage()
-                }
-                
+            /* GUARD: Was there an error? */
+            guard error == nil else {
+                print("Error Returned: \(error.debugDescription)")
+                completionHandler(false, nil, error.debugDescription)
+                return
             }
             
-        }
+            /* GUARD: Was there any data returned? */
+            guard let data = data else {
+                print("No Data Returned")
+                completionHandler(false, nil, "No Data Returned")
+                return
+            }
+            
+            do {
+                let parsedResult = try JSONDecoder().decode(UnsplashResponseKeys.self, from: data)
+                completionHandler(true, parsedResult, nil)
+                
+            } catch {
+                print("unable to parse json \(String(data: data, encoding: .utf8)!)")
+                completionHandler(false, nil, "unable to parse json")
+                return
+            }
+            
+            }.resume()
     }
+    
+    func createURLRequest(parameters: [String:String]) -> URLRequest {
+        var components = URLComponents()
+        components.scheme = Constants.Unsplash.APIScheme
+        components.host = Constants.Unsplash.APIHost
+        components.path = Constants.Unsplash.APIPath
+        components.queryItems = [URLQueryItem]()
+        
+        for (key, value) in parameters {
+            let queryItem = URLQueryItem(name: key, value: "\(value)")
+            components.queryItems!.append(queryItem)
+        }
+        
+        var request = URLRequest(url: components.url!)
+        request.httpMethod = Constants.Unsplash.GetRequest
+        return request
+    }
+    
+    static let sharedInstance = ImagesVC()
 }

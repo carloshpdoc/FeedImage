@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-extension ImagesVC {
+extension UIViewController {
     
     // MARK: Alerts
     func showAlert(_ title: String?, message: String, handler: @escaping() -> Void = {}) {

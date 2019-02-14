@@ -11,6 +11,7 @@ import CoreData
 
 class DataController {
     let persistentConainer: NSPersistentContainer
+    
     var viewContext: NSManagedObjectContext {
         return persistentConainer.viewContext
     }
@@ -34,16 +35,16 @@ class DataController {
 extension DataController {
     func autoSaveViewContext(interval:TimeInterval = 30) {
         print("AutoSaving")
-        
+
         guard interval > 0 else {
             print("Cannot set negative autosave interval")
             return
         }
-        
+
         if viewContext.hasChanges {
             try? viewContext.save()
         }
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + interval) {
             self.autoSaveViewContext(interval: interval)
         }
