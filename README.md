@@ -6,6 +6,7 @@ This is an app with a slide feed. You choose the category and the app presents y
 * Swift 4.2
 * UnsPlash API
 * UIKit
+* CoreData
 
 ### Installing
 Clone or Download Zip file and open FeedImage.xcodeproj
