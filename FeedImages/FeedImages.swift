@@ -25,12 +25,6 @@ class FeedImages: UIViewController {
     
     
     override func viewDidLoad() {
-        
-        //        let fetchRequest: NSFetchRequest<Image> = Image.fetchRequest()
-        //        let sortDescriptor = NSSortDescriptor(key: "creationDate", ascending: true)
-        //        let predicate = NSPredicate(format: "category = %@", category)
-        //        fetchRequest.predicate = predicate
-        //        fetchRequest.sortDescriptors = [sortDescriptor]
         getUnsplash()
     }
     
