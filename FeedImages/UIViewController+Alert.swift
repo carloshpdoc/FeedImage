@@ -1,5 +1,5 @@
 //
-//  GeneralVC.swift
+//  UIViewController+Alert.swift
 //  FeedImages
 //
 //  Created by carloshenrique.carmo on 07/02/19.

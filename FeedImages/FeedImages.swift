@@ -13,7 +13,6 @@ import CoreData
 class FeedImages: UIViewController {
     
     var dataController: DataController!
-    var fetchedResultsController: NSFetchedResultsController<Image>!
     
     @IBOutlet var spinner: UIActivityIndicatorView!
     @IBOutlet var creditLabel: UILabel!
@@ -25,20 +24,13 @@ class FeedImages: UIViewController {
     
     
     override func viewDidLoad() {
-        getUnsplash()
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
+        super.viewDidLoad()
         
+        getDataPersistence()
     }
     
-    override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(animated)
-        fetchedResultsController = nil
-    }
-    
-    func getUnsplash() {
+    func getUnsplash(completion: @escaping () -> Void) {
+        print("unsplash")
         ImagesVC.sharedInstance.getUnsplash(category) { (success, unsplash, error) in
             
             if !success {
@@ -48,7 +40,7 @@ class FeedImages: UIViewController {
                 return
             }
             
-            unsplash!.results.forEach() { [weak self] result in
+            unsplash!.results.forEach { [weak self] result in
                 if let context = self?.dataController.viewContext {
                     let image = Image(context: context)
                     image.url = URL(string: result.urls.small)?.absoluteString
@@ -56,6 +48,14 @@ class FeedImages: UIViewController {
                     image.creationDate =  Date()
                     image.category = self?.category
                     
+                    //convert it to a Swift URL and download it
+                    guard let imageURL = URL(string: result.urls.small) else { return }
+                    guard let imageData = try? Data(contentsOf: imageURL) else { return }
+
+                    image.data = imageData
+                    
+                    self?.images.append(image)
+
                     do {
                         // Saves to CoreData
                         try self?.dataController.viewContext.save()
@@ -64,37 +64,53 @@ class FeedImages: UIViewController {
                     }
                 }
             }
-            self.downloadImage()
+            //self.getDataPersistence()
+            completion()
         }
     }
     
-    func downloadImage() {
-
+    fileprivate func getDataPersistence() {
+         print("getDataPersistence")
         let fetchRequest: NSFetchRequest<Image> = Image.fetchRequest()
         let sortDescriptor = NSSortDescriptor(key: "creationDate", ascending: true)
         let predicate = NSPredicate(format: "category = %@", category)
         fetchRequest.predicate = predicate
         fetchRequest.sortDescriptors = [sortDescriptor]
         if let result = try? dataController.viewContext.fetch(fetchRequest) {
-            images = result
+            print("result.isEmpty \(result.isEmpty)")
+            if result.isEmpty {
+                print("if")
+                getUnsplash { [weak self] in
+                    self?.downloadImage()
+                }
+            } else {
+                print("else")
+                print("category \(category)")
+                images = result
+                self.downloadImage()
+            }
+        } else {
+            getUnsplash { [weak self] in
+                self?.downloadImage()
+            }
         }
+    }
+    
+    func downloadImage() {
+        print("downloadImage")
         
         // figure out what image to display
         let currentImage = images[imageCounter % images.count]
         
         //find its image URL and user credit
-        let imageName = currentImage.url
+        let imageName = currentImage.data
         let imageCredit = currentImage.caption
         
         //add 1 to imageCounter so next time we load the following image
         imageCounter += 1
         
-        //convert it to a Swift URL and download it
-        guard let imageURL = URL(string: imageName!) else { return }
-        guard let imageData = try? Data(contentsOf: imageURL) else { return }
-        
         //convert the Data to a UIImage
-        guard let image = UIImage(data: imageData) else { return }
+        guard let image = UIImage(data: imageName!) else { return }
         
         //push our work to the mail thread
         DispatchQueue.main.async {

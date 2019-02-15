@@ -128,9 +128,6 @@
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Vh1-sL-ufZ">
                                 <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
-                                <connections>
-                                    <action selector="buttonBack:" destination="I4m-33-Nva" eventType="touchUpInside" id="9Mb-QZ-C1y"/>
-                                </connections>
                             </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
